@@ -20,36 +20,36 @@ void setup()
         
         x = 135;
         servo();
-        delay(2000);
+        delay(5000);
               
         x = 45;
         servo();
-        delay(2000);
+        delay(5000);
         
         //Brake setting
         x = 45;
         servo();
-        delay(2000);
+        delay(5000);
         
         //Motor Poles
         x = 145;
         servo();
-        delay(2000);
+        delay(5000);
         
         //Batery Proteccion
         x = 45;
         servo();
-        delay(2000);
+        delay(5000);
         
         //Plane Mode
         x = 90;
         servo();
-        delay(2000);
+        delay(5000);
         
         //Throttle Response
         x = 45;
         servo();
-        delay(2000);
+        delay(5000);
 } 
  
 static void servo()

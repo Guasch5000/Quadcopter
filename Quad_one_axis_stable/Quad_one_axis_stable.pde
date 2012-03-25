@@ -1,7 +1,5 @@
-// -*- tab-width: 4; Mode: C++; c-basic-offset: 4; indent-tabs-mode: t -*-
-
 //
-// Simple test for the AP_DCM library
+// Stable one axis... (not yet)
 //
 
 #include <FastSerial.h>
@@ -58,6 +56,9 @@ int angulo_x;
 int angulo_y;
 uint16_t angulo_z;
 
+Vector3f accel = imu.get_accel();
+Vector3f gyro  = imu.get_gyro();
+
 
 void setup(void)
 {
@@ -90,33 +91,107 @@ void setup(void)
 
 }
 
+static void try_servos()
+{
+  delay(500);
+  der_servo.write(135);
+  izq_servo.write(45);
+  arr_servo.write(45);
+  aba_servo.write(45);
+
+  delay(500);
+  der_servo.write(135);
+  izq_servo.write(135);
+  arr_servo.write(45);
+  aba_servo.write(45);
+
+  delay(500);
+  der_servo.write(135);
+  izq_servo.write(135);
+  arr_servo.write(135);
+  aba_servo.write(45);
+
+  delay(500);
+  der_servo.write(135);
+  izq_servo.write(135);
+  arr_servo.write(135);
+  aba_servo.write(135);
+
+  delay(500);
+  der_servo.write(45);
+  izq_servo.write(45);
+  arr_servo.write(45);
+  aba_servo.write(45);
+}
+
 static void get_data()
 {
   compass.read();
   compass.calculate(dcm.get_dcm_matrix());
   dcm.update_DCM();
 
-
-  Vector3f accel = imu.get_accel();
-  Vector3f gyro  = imu.get_gyro();
-
   gyro  = imu.get_gyro();
   accel = imu.get_accel();
-  
-  angulo_x = (int)dcm.roll_sensor / 100,
-  angulo_y = (int)dcm.pitch_sensor / 100,
+
+  angulo_y = (int)dcm.roll_sensor / 100,
+  angulo_x = (int)dcm.pitch_sensor / 100,
   angulo_z = (uint16_t)dcm.yaw_sensor / 100;
 
-  Serial.printf_P(PSTR("r:%4d  p:%4d  y:%3d \n"), angulo_x, angulo_y, angulo_z);
+  //Serial.printf_P(PSTR("r:%4d  p:%4d  y:%3d \n"), angulo_x, angulo_y, angulo_z);
+}
+
+static void get_stable()
+{
+  int vel_hold = 65;
+  int vel_der;
+  int vel_izq;
+
+  int num_Kp = 20;
+  int den_Kp = 100;
+
+  int num_Kd = 30;
+  int den_Kd = 100;
+
+  int vel_proportional = (num_Kp * angulo_y) / den_Kp;
+  int vel_derivative = (num_Kd * (int)gyro.y) / den_Kd;
+
+  vel_der=vel_hold + vel_proportional + vel_derivative;
+  vel_izq=vel_hold - vel_proportional - vel_derivative;
+
+  //  if ((angulo_y > 1) || (angulo_y < -1)) {
+  //    vel_der=vel_hold + vel_proportional + vel_derivative;
+  //    vel_izq=vel_hold - vel_proportional - vel_derivative;
+  //    
+  //  }else {
+  //    vel_der = vel_hold;
+  //    vel_izq = vel_hold;
+  //  }
+
+  if(vel_der>100) vel_der=100; //maximo 135 (emisora)
+  if(vel_der<45) vel_der=45;
+  if(vel_izq>100) vel_izq=100;
+  if(vel_izq<45) vel_izq=45;
+
+  if( abs(angulo_y) > 60) {
+    vel_izq=45;
+    vel_der=45;
+  }
+
+  der_servo.write(vel_der);
+  izq_servo.write(vel_izq);
 }
 
 void loop()
 {
-	if (millis() < 25000) {
-		
-	} else {
-		get_data();
-                
-	}
+  if(millis()<22000){
+  }
+  else{
+    get_data();
+    get_stable();
+  }
+  //try_servos();
+
+
 }
+
 
